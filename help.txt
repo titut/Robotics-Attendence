@@ -1,0 +1,31 @@
+Goal: Create a sign up page
+
+
+
+Admin:
+- Display user info
+- Add user
+- Delete user
+- Edit user info
+
+
+
+User:
+- Pick their name
+- Sign in (attendence)
+
+
+
+user.csv:
+- name: String
+- email: String
+- grade: integer (for ex. 22)
+- department: String
+- attendence: Array[date]
+
+Last name
+First Name
+Grade
+Email
+Department
+Attendence

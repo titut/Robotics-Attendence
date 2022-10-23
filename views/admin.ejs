@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Page</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">
+            Robotics Admin
+        </div>
+        <div class="header-buttons">
+            <button class="add">Add Member</button>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <div class="table-searchbar">
+            <div class="searchbar grade">
+                <span>Grade</span>
+                <select id="sort-grade">
+                    <option>ALL</option>
+                    <option>9</option>
+                    <option>10</option>
+                    <option>11</option>
+                    <option>12</option>
+                </select>
+            </div>
+            <div class="searchbar department">
+                <span>Department</span>
+                <select id="sort-department">
+                    <option>ALL</option>
+                    <option>Software</option>
+                    <option>Building</option>
+                    <option>CAD</option>
+                    <option>Administration</option>
+                </select>
+            </div>
+            <div class="searchbar attendence">
+                <span>Attendence</span>
+                <select id="sort-attendence">
+                    <option>ALL</option>
+                    <option>Today</option>
+                </select>
+            </div>
+            <div class="searchbar department">
+                <button id="sort">Sort</button>
+            </div>
+        </div>
+        <div class="table">
+            <div class="table-header">
+                <div>Last Name</div>
+                <div>First Name</div>
+                <div>Grade</div>
+                <div>Email</div>
+                <div>Department</div>
+                <div>Attendence</div>
+                <div>Action</div>
+            </div>
+            <% for(var row of data){ %>
+                <div class="table-body" id="<%= row.id %>">
+                    <div><%= row.last %></div>
+                    <div><%= row.first %></div>
+                    <div><%= row.grade %></div>
+                    <div><%= row.email %></div>
+                    <div><%= row.department %></div>
+                    <div><% if(row.attendence != ""){ %>
+                        <%= row.attendence.split(",").length %>
+                    <% } %></div>
+                    <div><button class="edit" style="margin-right: 10px;">edit</button><button class="delete">delete</button></div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+    <div id="popup" style="display:none;" data-action="add">
+        <%- include('./popup') %>
+    </div>
+
+    <script>
+
+        document.getElementsByClassName("add")[0].addEventListener("click", function(){
+            document.getElementById("popup").style.display = "initial";
+            document.getElementById("popup").dataset.action = "add";
+        })
+
+        document.getElementById("cancel").addEventListener("click", function(){
+            document.getElementById("popup").style.display = "none";
+        })
+
+        document.getElementById("popup-submit").addEventListener("click", function(){
+            var first = document.getElementById("popup-first").value;
+            var last = document.getElementById("popup-last").value;
+            var email = document.getElementById("popup-email").value;
+            var department = document.getElementById("popup-department").value;
+            var grade = document.getElementById("popup-grade").value;
+
+            var obj = {
+                first,
+                last,
+                email,
+                department,
+                grade
+            }
+
+            if(document.getElementById("popup").dataset.action == "add"){
+                fetch("/add_member", {
+                    method: "POST",
+                    headers:{
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(obj)
+                })
+                .then((response) => {
+                    if(response.status == 200){
+                        location.reload();
+                    }
+                })
+            } else {
+                obj.id = document.getElementById("popup").dataset.id
+                fetch("/edit_member", {
+                    method: "POST",
+                    headers:{
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(obj)
+                })
+                .then((response) => {
+                    if(response.status == 200){
+                        location.reload();
+                    }
+                })
+            }
+            
+        })
+
+        for(let item of document.getElementsByClassName("delete")){
+            item.addEventListener("click", function(e){
+                if(confirm("Are you sure?")){
+                    fetch("/delete_member", {
+                    method: "POST",
+                    headers:{
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({id: e.target.parentNode.parentNode.id})
+                    })
+                    .then((response) => {
+                        if(response.status == 200){
+                            location.reload();
+                        }
+                    })
+                }
+            })
+        }
+
+        for(let item of document.getElementsByClassName("edit")){
+            item.addEventListener("click", function(e){
+                document.getElementById("popup").style.display = "initial";
+                document.getElementById("popup").dataset.action = "edit";
+                document.getElementById("popup").dataset.id = e.target.parentNode.parentNode.id;
+
+                var parent = e.target.parentNode.parentNode;
+
+                document.getElementById("popup-first").value = parent.children[1].innerHTML;
+                document.getElementById("popup-last").value = parent.children[0].innerHTML;
+                document.getElementById("popup-email").value = parent.children[3].innerHTML;
+                document.getElementById("popup-department").value = parent.children[4].innerHTML;
+                document.getElementById("popup-grade").value = parent.children[2].innerHTML;
+            })
+        }
+
+        document.getElementById("sort").addEventListener("click", function(){
+            let grade = document.getElementById("sort-grade").value;
+            let department = document.getElementById("sort-department").value;
+            let attendence = document.getElementById("sort-attendence").value;
+            let link = "/admin?"
+            if(grade != "ALL"){
+                link = link + "grade=" + grade;
+            }
+            if(department != "ALL"){
+                link = link + "&department="+department;
+            }
+            if(attendence != "ALL"){
+                link = link + "&attendence="+attendence;
+            }
+            location.href = link;
+        })
+
+    </script>
+</body>
+</html>
